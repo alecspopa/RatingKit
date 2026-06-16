@@ -1,10 +1,3 @@
-//
-//  RKStorage.swift
-//  RatingKit
-//
-//  Created by Alecs Popa on 16.06.26.
-//
-
 import Foundation
 
 /// Persistence in UserDefaults (intentionally not Keychain — reinstalling the
@@ -12,15 +5,13 @@ import Foundation
 final class RKStorage: @unchecked Sendable {
 
     private enum Key {
-        static let deviceId               = "rk.device_id"
-        static let launchCount            = "rk.launch_count"
-        static let lastDismissedAt        = "rk.last_dismissed_at"
-        static let lastCompletedAt        = "rk.last_completed_at"
-        static let firstLaunchAt          = "rk.first_launch_at"
-        static let totalForegroundSeconds = "rk.total_foreground_seconds"
+        static let deviceId = "rk.device_id"
+        static let customerFullName = "rk.customer_full_name"
+        static let lastShownAt = "rk.last_shown_at"
     }
 
     private let defaults: UserDefaults
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
     }
@@ -29,59 +20,36 @@ final class RKStorage: @unchecked Sendable {
         if let existing = defaults.string(forKey: Key.deviceId) {
             return existing
         }
+
         let new = UUID().uuidString
         defaults.set(new, forKey: Key.deviceId)
+
         return new
     }
 
-    var launchCount: Int {
-        get { defaults.integer(forKey: Key.launchCount) }
-        set { defaults.set(newValue, forKey: Key.launchCount) }
+    var customerFullName: String? {
+        defaults.string(forKey: Key.customerFullName)
     }
 
-    var lastDismissedAt: Date? {
-        get { defaults.object(forKey: Key.lastDismissedAt) as? Date }
-        set { defaults.set(newValue, forKey: Key.lastDismissedAt) }
+    var lastShownAt: Date? {
+        get { defaults.object(forKey: Key.lastShownAt) as? Date }
+        set { defaults.set(newValue, forKey: Key.lastShownAt) }
     }
 
-    var lastCompletedAt: Date? {
-        get { defaults.object(forKey: Key.lastCompletedAt) as? Date }
-        set { defaults.set(newValue, forKey: Key.lastCompletedAt) }
+    func recordShown() {
+        lastShownAt = Date()
     }
 
-    /// Set once on first launch; intentionally cleared on `reset()` and on
-    /// app reinstall (we use UserDefaults, not Keychain — by design).
-    var firstLaunchAt: Date? {
-        get { defaults.object(forKey: Key.firstLaunchAt) as? Date }
-        set { defaults.set(newValue, forKey: Key.firstLaunchAt) }
+    func setDeviceId(_ id: String) {
+        defaults.set(id, forKey: Key.deviceId)
     }
 
-    /// Cumulative seconds the host app has been in the foreground since
-    /// install. Driven by AFPForegroundTracker; reset on uninstall.
-    var totalForegroundSeconds: Double {
-        get { defaults.double(forKey: Key.totalForegroundSeconds) }
-        set { defaults.set(newValue, forKey: Key.totalForegroundSeconds) }
-    }
-
-    func recordLaunch() {
-        if firstLaunchAt == nil { firstLaunchAt = Date() }
-        launchCount += 1
-    }
-
-    func recordDismissed() {
-        lastDismissedAt = Date()
-    }
-
-    func recordCompleted() {
-        lastCompletedAt = Date()
+    func setCustomerFullName(_ fullName: String) {
+        defaults.set(fullName, forKey: Key.customerFullName)
     }
 
     func reset() {
         defaults.removeObject(forKey: Key.deviceId)
-        defaults.removeObject(forKey: Key.launchCount)
-        defaults.removeObject(forKey: Key.lastDismissedAt)
-        defaults.removeObject(forKey: Key.lastCompletedAt)
-        defaults.removeObject(forKey: Key.firstLaunchAt)
-        defaults.removeObject(forKey: Key.totalForegroundSeconds)
+        defaults.removeObject(forKey: Key.lastShownAt)
     }
 }

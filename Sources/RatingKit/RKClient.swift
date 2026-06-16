@@ -1,35 +1,7 @@
-//
-//  RKClient.swift
-//  RatingKit
-//
-//  Created by Alecs Popa on 16.06.26.
-//
-
 import Foundation
-import CryptoKit
 
-/// URLSession-backed HTTP client. Handles the per-request signing + auth
-/// headers so individual endpoints don't have to.
-///
-/// Auth scheme (matches www/include/api.php):
-///     X-API-Key:    <api_key>
-///     X-Device-Id:  <uuid>
-///     X-Timestamp:  <unix seconds>
-///     X-Signature:  sha256(api_secret + device_id + timestamp + body)
-///
-/// Decompiling the host app can leak the secret.
-/// The signature mainly stops casual abuse from network-trace observers.
 @MainActor
 final class RKClient {
-
-    private weak var kit: RatingKit?
-    private let session: URLSession
-
-    init(kit: RatingKit, session: URLSession = .shared) {
-        self.kit = kit
-        self.session = session
-    }
-
     enum RKError: Error {
         case notConfigured
         case server(code: String, message: String, status: Int)
@@ -37,30 +9,33 @@ final class RKClient {
         case transport(Error)
     }
 
-    func post<B: Encodable, R: Decodable>(path: String, body: B) async throws -> R {
+    private let kit: RatingKit?
+    private let session: URLSession
+
+    init(kit: RatingKit, session: URLSession = .shared) {
+        self.kit = kit
+        self.session = session
+    }
+
+    func post<Body: Encodable, Response: Decodable>(path: String, body: Body) async throws -> Response {
         guard let kit = kit, let config = kit.config else { throw RKError.notConfigured }
 
+        var url = config.apiURL
+        url.appendPathComponent(path.hasPrefix("/") ? String(path.dropFirst()) : path)
+        
         let bodyData = try JSONEncoder.rk.encode(body)
         let timestamp = String(Int(Date().timeIntervalSince1970))
         let deviceId = kit.storage.deviceId
-
-        let bodyString = String(data: bodyData, encoding: .utf8) ?? ""
-        let signaturePayload = config.apiSecret + deviceId + timestamp + bodyString
-        let signature = SHA256.hash(data: Data(signaturePayload.utf8))
-            .map { String(format: "%02x", $0) }
-            .joined()
-
-        var url = kit.baseURL
-        url.appendPathComponent(path.hasPrefix("/") ? String(path.dropFirst()) : path)
+        let customerFullName = kit.storage.customerFullName
 
         var req = URLRequest(url: url)
         req.httpMethod = "POST"
         req.httpBody = bodyData
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        req.setValue(config.apiKey, forHTTPHeaderField: "X-API-Key")
-        req.setValue(deviceId,      forHTTPHeaderField: "X-Device-Id")
-        req.setValue(timestamp,     forHTTPHeaderField: "X-Timestamp")
-        req.setValue(signature,     forHTTPHeaderField: "X-Signature")
+        req.setValue("Bearer \(config.apiKey)", forHTTPHeaderField: "Authorization")
+        req.setValue(deviceId, forHTTPHeaderField: "X-Device-Id")
+        req.setValue(customerFullName, forHTTPHeaderField: "X-Customer-Full-Name")
+        req.setValue(timestamp, forHTTPHeaderField: "X-Timestamp")
 
         let data: Data
         let response: URLResponse
@@ -79,7 +54,7 @@ final class RKClient {
         }
 
         do {
-            return try JSONDecoder.rk.decode(R.self, from: data)
+            return try JSONDecoder.rk.decode(Response.self, from: data)
         } catch {
             throw RKError.decode(error)
         }
