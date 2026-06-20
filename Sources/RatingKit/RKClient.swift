@@ -17,7 +17,7 @@ final class RKClient {
         self.session = session
     }
 
-    func post<Body: Encodable, Response: Decodable>(path: String, body: Body) async throws -> Response {
+    private func post<Body: Encodable, Response: Decodable>(path: String, body: Body) async throws -> Response {
         guard let kit = kit, let config = kit.config else { throw RKError.notConfigured }
 
         var url = config.apiURL
@@ -47,7 +47,7 @@ final class RKClient {
 
         let status = (response as? HTTPURLResponse)?.statusCode ?? 0
         if status < 200 || status >= 300 {
-            if let err = try? JSONDecoder.rk.decode(AFPErrorEnvelope.self, from: data) {
+            if let err = try? JSONDecoder.rk.decode(RKErrorEnvelope.self, from: data) {
                 throw RKError.server(code: err.error.code, message: err.error.message, status: status)
             }
             throw RKError.server(code: "http_\(status)", message: "HTTP \(status)", status: status)
@@ -59,9 +59,34 @@ final class RKClient {
             throw RKError.decode(error)
         }
     }
+
+    func postRating(rating: RatingBody) async throws {
+        let body = RatingEventBody(
+            rating: rating.rating,
+            feedback: rating.feedback,
+            metadata: RKDeviceProbe.snapshot()
+        )
+
+        _ = try await post(path: "/api/v1/event", body: body) as RKSimpleResponse
+    }
 }
 
-private struct AFPErrorEnvelope: Decodable {
+struct RatingBody: Encodable, Sendable {
+    let rating: Int
+    let feedback: String
+}
+
+private struct RatingEventBody: Encodable, Sendable {
+    let rating: Int
+    let feedback: String
+    let metadata: RKDeviceData
+}
+
+private struct RKSimpleResponse: Decodable, Sendable {
+    let ok: Bool
+}
+
+private struct RKErrorEnvelope: Decodable {
     struct Inner: Decodable { let code: String; let message: String }
     let error: Inner
 }
@@ -69,6 +94,7 @@ private struct AFPErrorEnvelope: Decodable {
 extension JSONEncoder {
     static let rk: JSONEncoder = {
         let e = JSONEncoder()
+        e.keyEncodingStrategy = .convertToSnakeCase
         e.dateEncodingStrategy = .iso8601
         return e
     }()
@@ -77,6 +103,7 @@ extension JSONEncoder {
 extension JSONDecoder {
     static let rk: JSONDecoder = {
         let d = JSONDecoder()
+        d.keyDecodingStrategy = .convertFromSnakeCase
         d.dateDecodingStrategy = .iso8601
         return d
     }()

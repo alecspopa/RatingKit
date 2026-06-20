@@ -31,9 +31,11 @@ struct RatingSheet: View {
                 Spacer()
 
                 Button("Submit", action: sheetAction)
-                    .buttonStyle(.glassProminent)
+                    .buttonStyle(.borderedProminent)
                     .buttonSizing(.flexible)
-                    .padding()
+                    .padding(.top)
+                    .padding(.horizontal)
+                    .disabled(rating == nil)
             }
             .navigationTitle("Rate your experience")
             .navigationBarTitleDisplayMode(.inline)
@@ -70,9 +72,15 @@ struct RatingSheet: View {
     private var feedbackView: some View {
         VStack {
             TextField("Feedback", text: $feedback)
-                .textFieldStyle(.roundedBorder)
+                .padding(12)
+                .background(Color.blue.opacity(0.1))
+                .cornerRadius(16)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.blue, lineWidth: 1)
+                )
                 .padding(.horizontal)
-                .padding(.bottom, 6)
+                .padding(.bottom, 8)
 
 
             Label("Tell us what we can improve.", systemImage: "info.circle")
@@ -81,23 +89,25 @@ struct RatingSheet: View {
     }
 
     private func sheetAction() {
-        if let rating, rating >= ratingCutOff {
-            dismiss()
-            requestReview()
-        } else {
-            if step == .rating {
-                step = .feedback
-            } else {
-                // TODO: submit to backend
+        if step == .rating {
+            if let rating, rating >= ratingCutOff {
                 dismiss()
+                requestReview()
+            } else {
+                step = .feedback
             }
+        } else if let rating, step == .feedback {
+            Task {
+                try await RatingKit.shared.client.postRating(rating: .init(rating: rating, feedback: feedback))
+            }
+
+            dismiss()
         }
     }
 }
 
 #Preview {
     @Previewable @State var isPresented: Bool = true
-    @Previewable @State var rating: Int? = nil
 
     VStack {
         Text("Background")
