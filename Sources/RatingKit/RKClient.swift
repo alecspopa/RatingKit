@@ -67,7 +67,7 @@ final class RKClient {
             metadata: RKDeviceProbe.snapshot()
         )
 
-        _ = try await post(path: "/api/v1/event", body: body) as RKSimpleResponse
+        _ = try await post(path: "/api/v1/reviews", body: body) as RKSimpleResponse
     }
 }
 
