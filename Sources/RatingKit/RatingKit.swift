@@ -37,7 +37,7 @@ public final class RatingKit {
 
         public init(
             apiKey: String,
-            apiURL: URL = URL(string: "https://api.ratingkit.com")!
+            apiURL: URL = URL(string: "https://ratingkit.slowcookingsoftware.com")!
         ) {
             self.apiKey = apiKey
             self.apiURL = apiURL
