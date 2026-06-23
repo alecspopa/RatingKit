@@ -6,7 +6,6 @@ final class RKStorage: @unchecked Sendable {
 
     private enum Key {
         static let deviceId = "rk.device_id"
-        static let customerFullName = "rk.customer_full_name"
         static let lastShownAt = "rk.last_shown_at"
     }
 
@@ -27,10 +26,6 @@ final class RKStorage: @unchecked Sendable {
         return new
     }
 
-    var customerFullName: String? {
-        defaults.string(forKey: Key.customerFullName)
-    }
-
     var lastShownAt: Date? {
         get { defaults.object(forKey: Key.lastShownAt) as? Date }
         set { defaults.set(newValue, forKey: Key.lastShownAt) }
@@ -42,10 +37,6 @@ final class RKStorage: @unchecked Sendable {
 
     func setDeviceId(_ id: String) {
         defaults.set(id, forKey: Key.deviceId)
-    }
-
-    func setCustomerFullName(_ fullName: String) {
-        defaults.set(fullName, forKey: Key.customerFullName)
     }
 
     func reset() {

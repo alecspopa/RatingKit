@@ -26,7 +26,6 @@ final class RKClient {
         let bodyData = try JSONEncoder.rk.encode(body)
         let timestamp = String(Int(Date().timeIntervalSince1970))
         let deviceId = kit.storage.deviceId
-        let customerFullName = kit.storage.customerFullName
 
         var req = URLRequest(url: url)
         req.httpMethod = "POST"
@@ -34,7 +33,6 @@ final class RKClient {
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         req.setValue("Bearer \(config.apiKey)", forHTTPHeaderField: "Authorization")
         req.setValue(deviceId, forHTTPHeaderField: "X-Device-Id")
-        req.setValue(customerFullName, forHTTPHeaderField: "X-Customer-Full-Name")
         req.setValue(timestamp, forHTTPHeaderField: "X-Timestamp")
 
         let data: Data

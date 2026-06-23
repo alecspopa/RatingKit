@@ -63,10 +63,6 @@ public final class RatingKit {
         shared.storage.setDeviceId(deviceId)
     }
 
-    public static func setCustomerFullName(_ fullName: String) {
-        shared.storage.setCustomerFullName(fullName)
-    }
-
     /// Reset all stored state — useful for development. Don't call from prod.
     public func resetForDevelopment() {
         storage.reset()
