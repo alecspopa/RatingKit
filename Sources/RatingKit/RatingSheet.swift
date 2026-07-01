@@ -30,12 +30,21 @@ struct RatingSheet: View {
 
                 Spacer()
 
-                Button("Submit", action: sheetAction)
-                    .buttonStyle(.borderedProminent)
-                    .buttonSizing(.flexible)
-                    .padding(.top)
-                    .padding(.horizontal)
-                    .disabled(rating == nil)
+
+                if #available(iOS 26.0, *) {
+                    Button("Submit", action: sheetAction)
+                        .buttonStyle(.borderedProminent)
+                        .buttonSizing(.flexible)
+                        .padding(.top)
+                        .padding(.horizontal)
+                        .disabled(rating == nil)
+                } else {
+                    Button("Submit", action: sheetAction)
+                        .buttonStyle(.borderedProminent)
+                        .padding(.top)
+                        .padding(.horizontal)
+                        .disabled(rating == nil)
+                }
             }
             .navigationTitle("Rate your experience")
             .navigationBarTitleDisplayMode(.inline)
