@@ -80,9 +80,9 @@ private struct RatingEventBody: Encodable, Sendable {
     let metadata: RKDeviceData
 }
 
-private struct RKSimpleResponse: Decodable, Sendable {
-    let ok: Bool
-}
+/// Success is determined by the 2xx status check above; the response body is
+/// not consumed, so decode permissively to tolerate any success payload shape.
+private struct RKSimpleResponse: Decodable, Sendable {}
 
 private struct RKErrorEnvelope: Decodable {
     struct Inner: Decodable { let code: String; let message: String }
