@@ -32,13 +32,12 @@ Sign up at [ratingkit.slowcookingsoftware.com](https://ratingkit.slowcookingsoft
 
 ```swift
     import SwiftUI
+    import RatingKit
     
     @main
     struct MyApp: App {
         init() {
-            RatingKit.configure(
-                apiKey: "a59b7a...",
-            )
+            RatingKit.configure(apiKey: "a59b7a...")
         }
     }
 ```
