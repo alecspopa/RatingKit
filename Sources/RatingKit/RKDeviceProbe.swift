@@ -10,8 +10,6 @@ struct RKDeviceData: Codable {
     let preferredLanguages: [String]
     let timezone: String
     let physicalMemoryMb: Int
-    let lowPowerMode: Bool
-    let thermalState: String
 }
 
 /// Gathers passive device with NO permission prompts.
@@ -29,7 +27,7 @@ enum RKDeviceProbe {
     static func snapshot() -> RKDeviceData {
         let bundle = Bundle.main
 
-        var out: RKDeviceData = .init(
+        let out: RKDeviceData = .init(
             appVersion: (bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) ?? "",
             appBuild: (bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String) ?? "",
             bundleId: bundle.bundleIdentifier ?? "",
@@ -38,9 +36,7 @@ enum RKDeviceProbe {
             region: Locale.current.region?.identifier ?? "",
             preferredLanguages: Locale.preferredLanguages.prefix(3).map{String($0)},
             timezone: TimeZone.current.identifier,
-            physicalMemoryMb: Int(ProcessInfo.processInfo.physicalMemory / 1_048_576),
-            lowPowerMode: ProcessInfo.processInfo.isLowPowerModeEnabled,
-            thermalState: thermalStateString()
+            physicalMemoryMb: Int(ProcessInfo.processInfo.physicalMemory / 1_048_576)
         )
 
         return out
@@ -59,25 +55,5 @@ enum RKDeviceProbe {
             }
         }
         return id
-    }
-
-    private static func freeDiskBytes() -> Int64? {
-        guard let url = try? FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false) else {
-            return nil
-        }
-        guard let values = try? url.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey]) else {
-            return nil
-        }
-        return values.volumeAvailableCapacityForImportantUsage
-    }
-
-    private static func thermalStateString() -> String {
-        switch ProcessInfo.processInfo.thermalState {
-            case .nominal:  return "nominal"
-            case .fair:     return "fair"
-            case .serious:  return "serious"
-            case .critical: return "critical"
-            @unknown default: return "unknown"
-        }
     }
 }
