@@ -22,7 +22,7 @@ import SwiftUI
 ///             VStack {
 ///                 Text("Hello RatingKit!")
 ///             }
-///             .ratingSheet(isPresented: $isPresented)
+///             .appRatingSheet(isPresented: $isPresented)
 ///         }
 
 /// Zero third-party dependencies — URLSession + Codable + SwiftUI only.
