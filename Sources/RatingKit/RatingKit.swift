@@ -51,8 +51,12 @@ public final class RatingKit {
     private init() {}
 
     /// Call once at app launch (e.g. in `App.init()`).
-    public static func configure(apiKey: String, apiURL: URL) {
-        configure(.init(apiKey: apiKey, apiURL: apiURL))
+    public static func configure(apiKey: String, apiURL: URL? = nil) {
+        if let apiURL {
+            configure(.init(apiKey: apiKey, apiURL: apiURL))
+        } else {
+            configure(.init(apiKey: apiKey))
+        }
     }
 
     public static func configure(_ config: Config) {
