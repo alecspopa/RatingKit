@@ -21,7 +21,7 @@ struct RatingSheet: View {
         NavigationStack {
             VStack {
                 Divider()
-                Spacer()
+                    .padding(.bottom)
 
                 switch step {
                     case .rating: ratingView
@@ -29,22 +29,6 @@ struct RatingSheet: View {
                 }
 
                 Spacer()
-
-
-                if #available(iOS 26.0, *) {
-                    Button("Submit", action: sheetAction)
-                        .buttonStyle(.borderedProminent)
-                        .buttonSizing(.flexible)
-                        .padding(.top)
-                        .padding(.horizontal)
-                        .disabled(rating == nil)
-                } else {
-                    Button("Submit", action: sheetAction)
-                        .buttonStyle(.borderedProminent)
-                        .padding(.top)
-                        .padding(.horizontal)
-                        .disabled(rating == nil)
-                }
             }
             .navigationTitle("Rate your experience")
             .navigationBarTitleDisplayMode(.inline)
@@ -59,9 +43,15 @@ struct RatingSheet: View {
             HStack {
                 ForEach(1...5, id: \.self) { idx in
                     Button(action: {
-                        if rating == nil {
-                            withAnimation(.snappy) {
-                                rating = idx
+                        withAnimation(.snappy) {
+                            rating = idx
+
+                            if let rating, rating >= ratingCutOff {
+                                dismiss()
+                                postRating()
+                                requestReview()
+                            } else {
+                                step = .feedback
                             }
                         }
                     }) {
@@ -94,18 +84,29 @@ struct RatingSheet: View {
 
             Label("Tell us what we can improve.", systemImage: "info.circle")
                 .font(.caption)
+
+            if #available(iOS 26.0, *) {
+                Button(action: postRating) {
+                    Text("Submit")
+                        .padding(.vertical, 8)
+                }
+                .buttonStyle(.borderedProminent)
+                .buttonSizing(.flexible)
+                .padding(.top)
+                .padding(.horizontal)
+                .disabled(rating == nil)
+            } else {
+                Button("Submit", action: postRating)
+                    .buttonStyle(.borderedProminent)
+                    .padding(.top)
+                    .padding(.horizontal)
+                    .disabled(rating == nil)
+            }
         }
     }
 
-    private func sheetAction() {
-        if step == .rating {
-            if let rating, rating >= ratingCutOff {
-                dismiss()
-                requestReview()
-            } else {
-                step = .feedback
-            }
-        } else if let rating, step == .feedback {
+    private func postRating() {
+        if let rating {
             Task {
                 try await RatingKit.shared.client.postRating(rating: .init(rating: rating, feedback: feedback))
             }
