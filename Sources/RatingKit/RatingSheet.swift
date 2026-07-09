@@ -82,7 +82,8 @@ struct RatingSheet: View {
                 .foregroundStyle(.secondary)
                 .padding(.bottom)
 
-            TextField("Feedback", text: $feedback)
+            TextField("Feedback", text: $feedback, axis: .vertical)
+                .lineLimit(2...4)
                 .padding(12)
                 .background(Color.white.opacity(0.3))
                 .cornerRadius(16)
