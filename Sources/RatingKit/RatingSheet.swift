@@ -30,16 +30,27 @@ struct RatingSheet: View {
 
                 Spacer()
             }
-            .navigationTitle("Rate your experience")
+            .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
-            .presentationDetents([.height(240), .medium])
+            .presentationDetents([.height(260), .medium])
             .presentationDragIndicator(.visible)
+        }
+    }
+
+    var title: String {
+        switch step {
+            case .rating: "Enjoying the experience?"
+            case .feedback: "Help us improve"
         }
     }
 
     @ViewBuilder
     private var ratingView: some View {
         VStack {
+            Text("Tap a star to rate it on the App Store.")
+                .foregroundStyle(.secondary)
+                .padding(.bottom)
+
             HStack {
                 ForEach(1...5, id: \.self) { idx in
                     Button(action: {
@@ -61,29 +72,26 @@ struct RatingSheet: View {
                 }
             }
             .padding(.bottom)
-
-            Label("Please rate the app so others can learn about it.", systemImage: "info.circle")
-                .font(.caption)
         }
     }
 
     @ViewBuilder
     private var feedbackView: some View {
         VStack {
+            Text("Tell us what we can do better.")
+                .foregroundStyle(.secondary)
+                .padding(.bottom)
+
             TextField("Feedback", text: $feedback)
                 .padding(12)
-                .background(Color.blue.opacity(0.1))
+                .background(Color.white.opacity(0.3))
                 .cornerRadius(16)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.blue, lineWidth: 1)
+                        .stroke(Color.gray.opacity(0.8), lineWidth: 1)
                 )
                 .padding(.horizontal)
                 .padding(.bottom, 8)
-
-
-            Label("Tell us what we can improve.", systemImage: "info.circle")
-                .font(.caption)
 
             if #available(iOS 26.0, *) {
                 Button(action: postRating) {
@@ -96,11 +104,14 @@ struct RatingSheet: View {
                 .padding(.horizontal)
                 .disabled(rating == nil)
             } else {
-                Button("Submit", action: postRating)
-                    .buttonStyle(.borderedProminent)
-                    .padding(.top)
-                    .padding(.horizontal)
-                    .disabled(rating == nil)
+                Button(action: postRating) {
+                    Text("Submit")
+                        .padding(.vertical, 8)
+                }
+                .buttonStyle(.borderedProminent)
+                .padding(.top)
+                .padding(.horizontal)
+                .disabled(rating == nil)
             }
         }
     }
