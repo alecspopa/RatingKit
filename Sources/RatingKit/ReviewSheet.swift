@@ -131,11 +131,16 @@ struct ReviewSheet: View {
     @Previewable @State var isPresented: Bool = true
 
     VStack {
-        Text("Background")
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(.gray)
-            .sheet(isPresented: $isPresented) {
-                ReviewSheet()
-            }
+        Button(action: { isPresented.toggle() }) {
+            Text("Show sheet")
+                .padding(.vertical, 8)
+        }
+        .buttonStyle(.borderedProminent)
+        .padding()
+    }
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .background(.gray)
+    .sheet(isPresented: $isPresented) {
+        ReviewSheet()
     }
 }
