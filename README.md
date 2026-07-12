@@ -55,7 +55,7 @@ Sign up at [ratingkit.slowcookingsoftware.com](https://ratingkit.slowcookingsoft
             VStack {
                 Text("Hello RatingKit!")
             }
-            .appRatingSheet(isPresented: $isPresented)
+            .appReviewSheet(isPresented: $isPresented)
         }
     }
 ```

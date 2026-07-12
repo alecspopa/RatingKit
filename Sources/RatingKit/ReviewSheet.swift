@@ -3,19 +3,17 @@ import SwiftUI
 import StoreKit
 import SwiftUI
 
-struct RatingSheet: View {
+struct ReviewSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.requestReview) var requestReview
 
     private enum Step {
-        case rating
+        case review
         case feedback
     }
 
-    @State private var step: Step = .rating
-    @State private var rating: Int?
+    @State private var step: Step = .review
     @State private var feedback: String = ""
-    private let ratingCutOff: Int = 3
 
     var body: some View {
         NavigationStack {
@@ -23,8 +21,10 @@ struct RatingSheet: View {
                 Divider()
                     .padding(.bottom)
 
+                Spacer()
+                
                 switch step {
-                    case .rating: ratingView
+                    case .review: reviewView
                     case .feedback: feedbackView
                 }
 
@@ -39,40 +39,42 @@ struct RatingSheet: View {
 
     var title: String {
         switch step {
-            case .rating: "Enjoying the experience?"
+            case .review: "Enjoying the experience?"
             case .feedback: "Help us improve"
         }
     }
 
     @ViewBuilder
-    private var ratingView: some View {
+    private var reviewView: some View {
         VStack {
-            Text("Tap a star to rate it on the App Store.")
+            Text("Your feedback is very important to us.")
                 .foregroundStyle(.secondary)
                 .padding(.bottom)
 
             HStack {
-                ForEach(1...5, id: \.self) { idx in
-                    Button(action: {
-                        withAnimation(.snappy) {
-                            rating = idx
-
-                            if let rating, rating >= ratingCutOff {
-                                dismiss()
-                                postRating()
-                                requestReview()
-                            } else {
-                                step = .feedback
-                            }
-                        }
-                    }) {
-                        Image(systemName: idx <= (rating ?? 0) ? "star.fill" : "star")
-                            .font(.largeTitle)
-                    }
+                Button(action: { step = .feedback }) {
+                    Text("Not really")
+                        .padding(.vertical, 8)
+                        .frame(maxWidth: .infinity)
                 }
+                .buttonStyle(.bordered)
+                .padding(.top)
+                .padding(.horizontal)
+
+                Button(action: {
+                    dismiss()
+                    requestReview()
+                }) {
+                    Text("Yes")
+                        .padding(.vertical, 8)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .padding(.top)
+                .padding(.horizontal)
             }
-            .padding(.bottom)
         }
+        .padding(.bottom)
     }
 
     @ViewBuilder
@@ -95,7 +97,7 @@ struct RatingSheet: View {
                 .padding(.bottom, 8)
 
             if #available(iOS 26.0, *) {
-                Button(action: postRating) {
+                Button(action: postFeedback) {
                     Text("Submit")
                         .padding(.vertical, 8)
                 }
@@ -103,28 +105,25 @@ struct RatingSheet: View {
                 .buttonSizing(.flexible)
                 .padding(.top)
                 .padding(.horizontal)
-                .disabled(rating == nil)
             } else {
-                Button(action: postRating) {
+                Button(action: postFeedback) {
                     Text("Submit")
                         .padding(.vertical, 8)
+                        .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
                 .padding(.top)
                 .padding(.horizontal)
-                .disabled(rating == nil)
             }
         }
     }
 
-    private func postRating() {
-        if let rating {
-            Task {
-                try await RatingKit.shared.client.postRating(rating: .init(rating: rating, feedback: feedback))
-            }
-
-            dismiss()
+    private func postFeedback() {
+        Task {
+            try await RatingKit.shared.client.postFeedback(feedback)
         }
+
+        dismiss()
     }
 }
 
@@ -136,7 +135,7 @@ struct RatingSheet: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(.gray)
             .sheet(isPresented: $isPresented) {
-                RatingSheet()
+                ReviewSheet()
             }
     }
 }

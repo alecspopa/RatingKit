@@ -58,10 +58,9 @@ final class RKClient {
         }
     }
 
-    func postRating(rating: RatingBody) async throws {
+    func postFeedback(_ feedback: String) async throws {
         let body = RatingEventBody(
-            rating: rating.rating,
-            feedback: rating.feedback,
+            feedback: feedback,
             metadata: RKDeviceProbe.snapshot()
         )
 
@@ -69,13 +68,7 @@ final class RKClient {
     }
 }
 
-struct RatingBody: Encodable, Sendable {
-    let rating: Int
-    let feedback: String
-}
-
 private struct RatingEventBody: Encodable, Sendable {
-    let rating: Int
     let feedback: String
     let metadata: RKDeviceData
 }
