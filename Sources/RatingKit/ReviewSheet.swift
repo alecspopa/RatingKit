@@ -22,7 +22,7 @@ struct ReviewSheet: View {
                     .padding(.bottom)
 
                 Spacer()
-                
+
                 switch step {
                     case .review: reviewView
                     case .feedback: feedbackView
@@ -98,7 +98,7 @@ struct ReviewSheet: View {
 
             if #available(iOS 26.0, *) {
                 Button(action: postFeedback) {
-                    Text("Submit")
+                    Text("Send feedback")
                         .padding(.vertical, 8)
                 }
                 .buttonStyle(.borderedProminent)
@@ -107,7 +107,7 @@ struct ReviewSheet: View {
                 .padding(.horizontal)
             } else {
                 Button(action: postFeedback) {
-                    Text("Submit")
+                    Text("Send feedback")
                         .padding(.vertical, 8)
                         .frame(maxWidth: .infinity)
                 }
